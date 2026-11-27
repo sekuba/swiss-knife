@@ -80,9 +80,12 @@ import { DecodedCalldataSkeleton } from "@/components/decodedParams/DecodedCalld
 import { createDecoderResultLink } from "@/lib/decoderShare";
 import { config } from "@/app/providers";
 import { getDisplayFunctionName } from "@/utils/functionNames";
+import { siteUrl } from "@/selfhost/site";
 
 const loadEditableCalldata = () => import("@/components/calldata/EditableCalldata")
   .then(module => ({ default: module.EditableCalldata }));
+// Self-hosted build: the skill served by app/tx/skill.md/route.ts on this origin.
+const TX_SKILL_URL = `${siteUrl}/tx/skill.md`;
 const EditableCalldata = dynamic(
   loadEditableCalldata,
   { ssr: false, loading: () => <DecodedCalldataSkeleton /> }
@@ -570,6 +573,47 @@ function SendTxContent() {
       }}
     >
       <Flex gridArea="toolbar" align="flex-end" justify="space-between" gap={4} flexWrap="wrap" minW={0}>
+        <Box w="fit-content" maxW="full" minW={0} textAlign="left">
+          <Text color="text.tertiary" fontSize="11px" fontWeight="semibold" textTransform="uppercase" mb={1.5}>
+            For your Agent
+          </Text>
+          <HStack spacing={0} border="1px solid" borderColor="border.default" borderRadius="lg" bg="bg.subtle" overflow="hidden" minW={0}>
+            <Text fontFamily="mono" fontSize="sm" color="text.primary" px={3} py={2.5} flex={1} minW={0} noOfLines={1}>
+              {TX_SKILL_URL}
+            </Text>
+            <Tooltip label="Copy skill.md URL" shouldWrapChildren>
+              <CopyToClipboard
+                textToCopy={TX_SKILL_URL}
+                aria-label="Copy skill.md URL"
+                h="39px"
+                minW="42px"
+                px={0}
+                borderRadius={0}
+                borderLeft="1px solid"
+                borderColor="border.default"
+              />
+            </Tooltip>
+            <Tooltip label="Open skill.md">
+              <IconButton
+                as={Link}
+                href={`${getPath(subdomains.TRANSACT.base)}skill.md`}
+                isExternal
+                aria-label="Open skill.md"
+                icon={<ExternalLinkIcon boxSize={4} />}
+                variant="ghost"
+                size="sm"
+                h="39px"
+                minW="42px"
+                px={0}
+                borderRadius={0}
+                borderLeft="1px solid"
+                borderColor="border.default"
+                color="text.primary"
+                _hover={{ bg: "bg.emphasis", textDecoration: "none" }}
+              />
+            </Tooltip>
+          </HStack>
+        </Box>
         <Box ml="auto" flexShrink={0}><ConnectButton /></Box>
       </Flex>
       {summaryRequest && (

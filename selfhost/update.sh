@@ -63,6 +63,11 @@ merge_upstream() {
   local owned=() touched
   mapfile -t owned < <(owned_files)
   touched="$(GIT_LITERAL_PATHSPECS=1 git diff --name-only "$base" "$target" -- "${owned[@]}")"
+  # Upstream files the fork removed but re-implements itself (keep.json "watch").
+  local watch=() watched=""
+  mapfile -t watch < <(node -e 'console.log((require("./selfhost/keep.json").watch ?? []).join("\n"))')
+  ((${#watch[@]})) && [[ -n "${watch[0]}" ]] &&
+    watched="$(GIT_LITERAL_PATHSPECS=1 git diff --name-only "$base" "$target" -- "${watch[@]}")"
 
   say "Merging $target"
   git merge --no-commit --no-ff "$target" >/dev/null 2>&1 || true
@@ -83,6 +88,11 @@ merge_upstream() {
     say "Upstream changed files this fork owns (kept ours; review whether to port anything)"
     printf '  %s\n' $touched
     printf '  compare with: git diff %s %s -- <file>\n' "$(git rev-parse --short "$base")" "$target"
+  fi
+  if [[ -n "$watched" ]]; then
+    say "Upstream changed files this fork re-implements (port the change by hand)"
+    printf '  %s\n' $watched
+    printf '  see: git diff %s %s -- <file>\n' "$(git rev-parse --short "$base")" "$target"
   fi
   local unmerged; unmerged="$(git diff --name-only --diff-filter=U)"
   if [[ -n "$unmerged" ]]; then

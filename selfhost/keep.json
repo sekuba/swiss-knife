@@ -60,6 +60,9 @@
     "components/Footer.tsx",
     "data/toolCatalog.ts"
   ],
+  "watch": [
+    "public/tx/skill.md"
+  ],
   "testSupport": [
     "lib/fixtures/",
     "vitest/"
@@ -99,7 +102,15 @@
       "follow-redirects": "^1.16.3",
       "ws@>=8.0.0 <8.21.0": "^8.23.0",
       "ws@>=7.0.0 <7.5.11": "^7.5.11",
-      "nanoid@<3.3.18": "^3.3.20"
+      "nanoid@<3.3.18": "^3.3.20",
+      "@wagmi/connectors>porto": "-",
+      "@wagmi/connectors>@metamask/sdk": "-",
+      "@wagmi/connectors>@coinbase/wallet-sdk": "-",
+      "@wagmi/connectors>cbw-sdk": "-",
+      "@wagmi/connectors>@base-org/account": "-",
+      "@wagmi/connectors>@gemini-wallet/core": "-",
+      "@wagmi/connectors>@safe-global/safe-apps-sdk": "-",
+      "@wagmi/connectors>@safe-global/safe-apps-provider": "-"
     }
   },
   "scripts": {

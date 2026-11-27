@@ -14,8 +14,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "no-referrer" },
   // Ignored by browsers over plain HTTP, so harmless on localhost.
   { key: "Strict-Transport-Security", value: "max-age=31536000" },
-  // allow-popups: wallet connectors (e.g. Coinbase) talk to a popup they open.
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   {
     key: "Permissions-Policy",
@@ -26,6 +25,22 @@ const securityHeaders = [
   { key: "X-Robots-Tag", value: "noindex, nofollow" },
 ];
 
+// Wallet SDKs dropped from the install (packages.overrides in
+// selfhost/keep.json). Only browser-extension wallets, WalletConnect and the
+// impersonator are offered; see the wallet list in app/providers.tsx.
+const REMOVED_WALLET_SDKS = [
+  "porto",
+  "porto/internal",
+  "@metamask/sdk",
+  "@coinbase/wallet-sdk",
+  "cbw-sdk",
+  "@base-org/account",
+  "@gemini-wallet/core",
+  "@safe-global/safe-apps-sdk",
+  "@safe-global/safe-apps-provider",
+];
+const walletSdkStub = "./selfhost/removed-wallet-sdk.js";
+
 const nextConfig = {
   reactStrictMode: true,
   output: "standalone",
@@ -33,7 +48,11 @@ const nextConfig = {
   // No server-side image optimizer: it would fetch and resize on demand.
   // proxy.ts additionally refuses /_next/image.
   images: { unoptimized: true },
-  turbopack: {},
+  turbopack: {
+    resolveAlias: Object.fromEntries(
+      REMOVED_WALLET_SDKS.map((name) => [name, walletSdkStub])
+    ),
+  },
   headers() {
     return [
       { source: "/:path*", headers: securityHeaders },
@@ -51,6 +70,8 @@ const nextConfig = {
   },
   webpack: (config) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
+    for (const name of REMOVED_WALLET_SDKS)
+      config.resolve.alias[`${name}$`] = require.resolve(walletSdkStub);
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     return config;
   },

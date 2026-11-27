@@ -24,6 +24,7 @@ import {
   EVMParameter,
 } from "@/types";
 import { formatEther, formatUnits } from "viem";
+import { localPath } from "@/selfhost/site";
 
 // Re-export name resolution functions from the new unified lib
 export {
@@ -83,6 +84,10 @@ export const getMetadata = (_metadata: {
   images: string;
   canonical?: string;
 }) => {
+  // Self-hosted build: upstream's canonical URLs name its own subdomains;
+  // express them as paths on this origin (resolved against metadataBase).
+  if (process.env.NEXT_PUBLIC_DEVELOPMENT === "true" && _metadata.canonical)
+    _metadata = { ..._metadata, canonical: localPath(_metadata.canonical) };
   const metadata: Metadata = {
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_DEVELOPMENT === "true"

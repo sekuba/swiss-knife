@@ -13,6 +13,12 @@ It runs on a single origin of your choice, as one hardened container behind a
 reverse proxy. All chains upstream supports still work; chain support lives in
 the kept code and costs nothing extra.
 
+Wallets: browser extensions (anything announced through EIP-6963 or
+`window.ethereum`, e.g. Ambire), WalletConnect, and the read-only impersonator.
+
+For agents: `/tx/skill.md` is the Transact skill with every URL pointing at
+your deployment, so an agent can hand you prefilled `/tx?to=…&calldata=…` links.
+
 Not affiliated with eth.sh. All credit for the tools goes to the Swiss-Knife
 contributors (MIT, see [LICENSE.md](LICENSE.md)).
 
@@ -20,7 +26,10 @@ contributors (MIT, see [LICENSE.md](LICENSE.md)).
 
 **Removed.** Every other tool, page and API route (60 of 63 routes), the
 homepage, analytics, sitemap and Open Graph image generation, and every
-dependency the three tools do not import (about half of the lockfile). What is
+dependency the three tools do not import. The MetaMask, Coinbase, Base, Gemini,
+Safe and Porto wallet SDKs are dropped from the install as well (wagmi hard-
+depends on them; `packages.overrides` removes them and `next.config.js` stubs
+the imports). Together that is well over half of upstream's lockfile. What is
 left is computed, not hand-picked: `selfhost/prune.mjs` follows imports from the
 entry points listed in `selfhost/keep.json` and deletes the rest.
 
@@ -54,8 +63,13 @@ validated `chainId` / `address` input:
 
 **What the browser still contacts.** RPC endpoints for the selected chain,
 WalletConnect / Reown (relay, plus a telemetry ping from their SDK on load),
-Sourcify and 4byte signature lookups, ENS avatar hosts, and whatever wallet you
-connect. Everything else is same-origin.
+Sourcify and 4byte signature lookups, and ENS avatar hosts. Everything else is
+same-origin.
+
+**Links stay on your origin.** Navigation, share links, the agent skill and
+canonical URLs all use `NEXT_PUBLIC_SITE_URL` and paths (`/tx`, not
+`tx.eth.sh`). Link-preview images are the one exception: the meta tags still
+name upstream's generated images, since this build has no image generator.
 
 ## Deploy
 
@@ -95,7 +109,9 @@ The fork is built so that merges stay cheap:
 - **Derived files** (`package.json`, `pnpm-lock.yaml`) are regenerated from
   upstream's copy on every update.
 - **Owned files** (listed under `owned` in `keep.json`) always keep this fork's
-  version; the script tells you when upstream touched one.
+  version; the script tells you when upstream touched one. The same goes for
+  `watch` entries: upstream files the fork removed but re-implements (the
+  agent skill text).
 - **Patched files** are ordinary upstream files with a small local change.
   These are the only ones that can conflict. See them with
   `git diff upstream/master --stat --diff-filter=M`.
@@ -105,8 +121,8 @@ When a merge does conflict, resolve it, `git add`, and run
 
 Run `selfhost/update.sh --rebuild` now and then even without upstream changes:
 it pulls patched base images. `pnpm audit --prod` output is printed on every
-update; what remains is almost entirely inside wallet SDKs that upstream
-depends on. To force a fixed version, add it to `packages.pin` (direct
+update; what remains is almost entirely inside WalletConnect's dependency
+tree. To force a fixed version, add it to `packages.pin` (direct
 dependency) or `packages.overrides` (transitive) in `selfhost/keep.json` and
 run the update again.
 
@@ -118,6 +134,8 @@ selfhost/prune.mjs        deletes what the entry points do not import
 selfhost/update.sh        merge upstream, verify, deploy
 selfhost/Dockerfile       verify / build / distroless runtime stages
 selfhost/compose.yaml     the hardened container
+selfhost/site.ts          this deployment's origin; upstream URL -> local path
+app/tx/skill.md/route.ts  the Transact agent skill, served for this origin
 proxy.ts                  CSP, method allowlist, same-origin API, rate limits
 next.config.js            static security headers, standalone output
 instrumentation-client.ts points Monaco at the self-hosted copy

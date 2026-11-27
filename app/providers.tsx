@@ -23,11 +23,8 @@ import {
 } from "@rainbow-me/rainbowkit";
 
 import {
-  metaMaskWallet,
+  injectedWallet,
   walletConnectWallet,
-  rainbowWallet,
-  safeWallet,
-  coinbaseWallet,
 } from "@rainbow-me/rainbowkit/wallets";
 import {
   impersonatorWallet,
@@ -62,8 +59,11 @@ const connectors = connectorsForWallets(
             return globalOpenImpersonatorModal();
           },
         }),
-        metaMaskWallet,
-        coinbaseWallet,
+        // Self-hosted build: browser extensions (Ambire and any other wallet
+        // announced through EIP-6963 / window.ethereum) and WalletConnect only.
+        // The MetaMask, Coinbase, Rainbow and Safe SDK connectors are removed,
+        // and their packages are dropped in selfhost/keep.json.
+        injectedWallet,
         // Use WalletConnect with a custom storage prefix
         // This is to prevent clashes with our walletkit in wallet/bridge.
         ({ projectId }) =>
@@ -73,8 +73,6 @@ const connectors = connectorsForWallets(
               customStoragePrefix: "rainbowkit-client-role-",
             },
           }),
-        rainbowWallet,
-        safeWallet,
       ],
     },
   ],
