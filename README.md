@@ -33,10 +33,12 @@ in `keep.json` cuts packages that are installed but never loaded:
   hard-depends on them; `next.config.js` stubs the imports),
 - the dev server, CLI and remote drivers that WalletConnect's storage layer
   (`unstorage`) drags in,
-- Next's image library, a QR library's CLI parser, and Emotion's Babel macro.
+- Next's image library, a QR library's CLI parser, and Emotion's Babel macro,
+- the source diff viewer (`@pierre/diffs` and its highlighter): only the
+  removed contract-diff tool ever fed it, so the component is a stub here.
 
 Upstream's jsdom test suite and its tooling are gone too; the fast unit tests
-stay. The lockfile goes from about 1900 packages to about 440. What is left is
+stay. The lockfile goes from about 1900 packages to under 400. What is left is
 computed, not hand-picked: `selfhost/prune.mjs` follows imports from the
 entry points listed in `selfhost/keep.json` and deletes the rest.
 

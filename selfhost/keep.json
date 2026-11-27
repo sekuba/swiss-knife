@@ -58,7 +58,8 @@
     "app/explorer/[chainId]/[address]/page.tsx",
     "components/Analytics.tsx",
     "components/Footer.tsx",
-    "data/toolCatalog.ts"
+    "data/toolCatalog.ts",
+    "components/SourceCodeExplorer/PierreDiff.tsx"
   ],
   "watch": [
     "public/tx/skill.md"
