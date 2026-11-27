@@ -9,9 +9,6 @@ import { usePathname } from "next/navigation";
 
 const CalldataTools = [
   { name: "Decoder", path: "decoder" },
-  { name: "Encoder", path: "encoder" },
-  { name: "Viem Error Simulate", path: "viem-error-simulate" },
-  { name: "CoWSwap TWAP Verifier", path: "cowswap" },
 ];
 
 export const CalldataLayout = ({ children }: { children: React.ReactNode }) => {

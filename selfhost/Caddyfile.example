@@ -1,0 +1,10 @@
+# Caddy site block. Caddy terminates TLS and sets X-Forwarded-For itself
+# (it discards a client-supplied one), which the app's rate limiter relies on.
+eth.example.org {
+	encode zstd gzip
+	# The app only answers GET and HEAD; no request needs a body.
+	request_body {
+		max_size 16KB
+	}
+	reverse_proxy 127.0.0.1:3947
+}

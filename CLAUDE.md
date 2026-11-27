@@ -1,16 +1,40 @@
-# Claude guidance for this repo
+# Guidance for this repo
 
-## Styling
+This is a reduced, self-hosted fork of ETH.sh (swiss-knife-xyz/swiss-knife).
+Read [README.md](README.md) first; it explains the fork's structure.
 
-**Always read [`STYLING.md`](./STYLING.md) before making any UI changes.** It defines the design system, color tokens, typography, and component patterns. Key rules:
+## Rules
 
-- **No gradients** in headings, backgrounds, or icon tiles. Use solid colors from the token system.
-- Tool pages use the professional blue theme (`primary.500` / `blue.400` accents on solid backgrounds).
-- Use existing components (`InputField`, `DarkButton`, `DarkSelect`, `Card`, `TabsSelector`) instead of rolling new ones.
-- Inside nested containers, use `whiteAlpha.*` for backgrounds/borders — never `bg.base` / `bg.subtle`.
+- Keep the diff against upstream small. Upstream moves fast and every changed
+  upstream file is a future merge conflict. Prefer, in this order: deleting
+  (via `selfhost/keep.json`), a new fork-owned file, a few-line patch.
+- Do not add tools, pages or API routes back without being asked. The kept
+  surface is `/tx`, `/explorer`, `/calldata/decoder` and three API routes.
+- Never edit `package.json` or `pnpm-lock.yaml` by hand. Change
+  `selfhost/keep.json` (`packages.*`, `scripts`), then run
+  `node selfhost/prune.mjs` and
+  `corepack pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts`.
+- A new fork-owned file that replaces an upstream file must be listed under
+  `owned` in `selfhost/keep.json`.
+- Anything that loads in the browser from another origin, or any new
+  server-side fetch, needs a matching change in `proxy.ts` (CSP) and a line in
+  the README's "What is different" section. Default answer: do not add it.
+- `NEXT_PUBLIC_*` values are public. Secrets are server-only and must be listed
+  explicitly in `selfhost/compose.yaml` to reach the container.
 
-## Page structure
+## Checks
 
-- Tool pages live under `app/<subdomain>/<tool>/` with `page.tsx`, `layout.tsx` (metadata via `getMetadata`), and a `*Page.tsx` client component.
-- Register new tool paths in `subdomains.js` and add them to the relevant sidebar in `app/<subdomain>/<Subdomain>Layout.tsx`.
-- OG image convention: a dynamic route under `app/api/og/<slug>/route.tsx`, referenced as `https://eth.sh/api/og/<slug>` in layout metadata. Reuse `lib/toolOg.tsx` and `lib/toolOgCards.ts` for the standard tool-card design.
+```sh
+node selfhost/prune.mjs --check
+corepack pnpm typecheck && corepack pnpm test:unit
+corepack pnpm test:ui -- <spec file>   # slow; run the specs near what you changed
+```
+
+Upstream sync and deployment go through `selfhost/update.sh`; do not push or
+deploy by other means unless asked.
+
+## UI changes
+
+Upstream's design rules still apply to the kept components: Chakra UI, solid
+colors from the theme tokens (no gradients), existing components (`InputField`,
+`DarkButton`, `DarkSelect`, `TabsSelector`) before new ones.

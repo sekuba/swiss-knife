@@ -187,24 +187,6 @@ export default function ContractStart({
         </Box>
       )}
 
-      {!embedded && (
-        <HStack spacing={4} flexWrap="wrap" justify="center">
-          <Link
-            href={getPath(subdomains.EXPLORER.base)}
-            fontSize="sm"
-            color="text.secondary"
-          >
-            Explorer Directory
-          </Link>
-          <Link
-            href={`${getPath(subdomains.CONTRACT.base)}verify`}
-            fontSize="sm"
-            color="text.secondary"
-          >
-            Cross-explorer Verification
-          </Link>
-        </HStack>
-      )}
       {/* Input Section */}
       <Box
         w="full"

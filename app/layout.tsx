@@ -1,6 +1,10 @@
 import { getMetadata } from "@/utils";
 import { IndexLayout as IndexLayoutC } from "./IndexLayout";
 
+// Self-hosted build: pages are rendered per request so that each response
+// carries the script nonce issued by proxy.ts.
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   ...getMetadata({
     title: "ETH.sh | The Ultimate Ethereum Toolkit",

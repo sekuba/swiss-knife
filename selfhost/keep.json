@@ -1,0 +1,116 @@
+{
+  "entries": [
+    "app/layout.tsx",
+    "app/not-found.tsx",
+    "app/page.tsx",
+    "app/icon.png",
+    "app/tx/",
+    "app/explorer/layout.tsx",
+    "app/explorer/page.tsx",
+    "app/explorer/[chainId]/",
+    "app/calldata/layout.tsx",
+    "app/calldata/page.tsx",
+    "app/calldata/decoder/",
+    "app/api/source-code/",
+    "app/api/labels/",
+    "app/api/clearsigning/",
+    "next.config.js",
+    "proxy.ts",
+    "instrumentation-client.ts"
+  ],
+  "keep": [
+    "selfhost/",
+    ".dockerignore",
+    ".gitattributes",
+    ".gitignore",
+    ".npmrc",
+    ".nvmrc",
+    ".prettierrc",
+    "CLAUDE.md",
+    "LICENSE.md",
+    "README.md",
+    "package.json",
+    "pnpm-lock.yaml",
+    "tsconfig.json",
+    "evmole.d.ts",
+    "subdomains.d.ts",
+    "types/*.d.ts",
+    "public/robots.txt",
+    "public/favicon.ico",
+    "public/favicon.svg",
+    "public/apple-touch-icon.png",
+    "public/logo.svg",
+    "public/logo.png",
+    "public/chainIcons/",
+    "public/tokenIcons/",
+    "public/explorerIcons/",
+    "public/decoder-examples/",
+    "public/external/*"
+  ],
+  "owned": [
+    "README.md",
+    "CLAUDE.md",
+    "next.config.js",
+    "proxy.ts",
+    "instrumentation-client.ts",
+    "app/page.tsx",
+    "app/calldata/decoder/page.tsx",
+    "app/explorer/[chainId]/[address]/page.tsx",
+    "components/Analytics.tsx",
+    "components/Footer.tsx",
+    "data/toolCatalog.ts"
+  ],
+  "testSupport": [
+    "lib/fixtures/",
+    "vitest/"
+  ],
+  "dropTests": [
+    "scripts/",
+    "lib/abiToSolidity.spec.ts"
+  ],
+  "packages": {
+    "runtime": [
+      "next",
+      "react",
+      "react-dom",
+      "@emotion/styled",
+      "monaco-editor"
+    ],
+    "dev": [
+      "typescript",
+      "@types/node",
+      "@types/react",
+      "@types/react-dom",
+      "vitest",
+      "jsdom",
+      "tsx"
+    ],
+    "add": {
+      "monaco-editor": "0.54.0"
+    },
+    "pin": {
+      "next": "16.4.6",
+      "axios": "^1.21.1",
+      "lodash": "^4.18.1"
+    },
+    "overrides": {
+      "axios": "^1.21.1",
+      "form-data@<4.0.6": "^4.0.6",
+      "follow-redirects": "^1.16.3",
+      "ws@>=8.0.0 <8.21.0": "^8.23.0",
+      "ws@>=7.0.0 <7.5.11": "^7.5.11",
+      "nanoid@<3.3.18": "^3.3.20"
+    }
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "node selfhost/copy-monaco.mjs && next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "tsx --test",
+    "test:ui": "vitest run --config selfhost/vitest.config.ts",
+    "test": "pnpm test:unit && pnpm test:ui",
+    "prune": "node selfhost/prune.mjs",
+    "prune:check": "node selfhost/prune.mjs --check"
+  }
+}

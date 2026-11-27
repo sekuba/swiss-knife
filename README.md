@@ -1,109 +1,139 @@
-<a href="https://eth.sh/">
-  <img alt="ETH.sh — Ethereum tools" src=".github/logo.png" />
-</a>
+# eth.sh, self-hosted and reduced
 
-# ETH.sh
+A fork of [ETH.sh / Swiss-Knife](https://github.com/swiss-knife-xyz/swiss-knife)
+that keeps three tools and removes everything else:
 
-**The Ultimate Ethereum Toolkit**
+| Tool | Path | Upstream |
+| --- | --- | --- |
+| Contract explorer | `/explorer` | explorer.eth.sh |
+| Calldata decoder | `/calldata/decoder` | calldata.eth.sh/decoder |
+| Transact (send calldata / deploy) | `/tx` | tx.eth.sh |
 
-[ETH.sh](https://eth.sh/) brings together tools for inspecting contracts, decoding calldata, sending transactions, and working across EVM chains, alongside directories for the Ethereum ecosystem.
+It runs on a single origin of your choice, as one hardened container behind a
+reverse proxy. All chains upstream supports still work; chain support lives in
+the kept code and costs nothing extra.
 
-Formerly **Swiss-Knife.xyz**, rebuilt with a new interface and expanded toolset. Each tool has a direct, bookmarkable URL, such as [calldata.eth.sh](https://calldata.eth.sh/decoder), [explorer.eth.sh](https://explorer.eth.sh/), and [tx.eth.sh](https://tx.eth.sh/).
+Not affiliated with eth.sh. All credit for the tools goes to the Swiss-Knife
+contributors (MIT, see [LICENSE.md](LICENSE.md)).
 
-[Explore all tools](https://eth.sh/#all-tools) · [Report a bug or request a feature](https://github.com/swiss-knife-xyz/swiss-knife/issues)
+## What is different from upstream
 
-## Developer tools
+**Removed.** Every other tool, page and API route (60 of 63 routes), the
+homepage, analytics, sitemap and Open Graph image generation, and every
+dependency the three tools do not import (about half of the lockfile). What is
+left is computed, not hand-picked: `selfhost/prune.mjs` follows imports from the
+entry points listed in `selfhost/keep.json` and deletes the rest.
 
-| Tool | What it does |
-| --- | --- |
-| [Explorer](https://explorer.eth.sh/) | Inspect addresses and contracts, read and write functions, inspect storage, and open external explorers. |
-| [Calldata](https://calldata.eth.sh/decoder) | Decode calldata without a supplied ABI, encode function calls, and inspect decoded parameters. |
-| [Solidity Compiler](https://solidity.eth.sh/compiler) | Write, compile, and deploy Solidity contracts in the browser. |
-| [Cross-explorer Verification](https://explorer.eth.sh/verify) | Verify contract source across Etherscan, Blockscout, Routescan, and Sourcify. |
-| [Transact](https://tx.eth.sh/) | Send custom calldata and ETH, or deploy a contract from bytecode. |
-| [Contract Diff](https://contract-diff.eth.sh/) | Compare deployed contract source code across addresses and chains. |
-| [Wallet](https://wallet.eth.sh/bridge) | Connect dapps through WalletConnect, use DS Proxy and Coinbase Smart Wallet tools, and sign or verify messages and EIP-712 typed data. |
-| [Web3 App Store](https://apps.eth.sh/) | Browse dapps with transaction decoding built into the wallet flow. |
-| [Explorer Directory](https://eth.sh/explorers) | Find external explorers for an address, ENS name, or transaction across EVM chains. |
-| [Uniswap](https://uniswap.eth.sh/tick-to-price) | Convert ticks and prices, calculate swaps, and work with Uniswap v4 pools, liquidity, and positions. |
-| [Safe](https://safe.eth.sh/eip-712-hash) | Calculate Safe EIP-712 transaction hashes and decode Safe calldata. |
-| [Mock Tokens](https://eth.sh/mock-tokens) | Deploy mock ERC-20, ERC-721, and ERC-1155 tokens for testing. |
-| [Storage Slots](https://storage-slots.eth.sh/) | Read custom, EIP-1967, and ERC-7201 contract storage slots. |
-| [RPC Console](https://eth.sh/rpc-console) | Make read-only JSON-RPC queries with request examples and formatted responses. |
-| [IPFS Gateways](https://ipfs.eth.sh/) | Open IPFS CIDs and URLs through public gateways. |
-| [ENS](https://ens.eth.sh/history) | Explore name history and visualize CCIP Read resolution. |
-| [Converter](https://converter.eth.sh/eth) | Convert ether, gwei, wei, hex, decimal, and binary; calculate hashes, selectors, padding, checksums, and gas costs. |
-| [Epoch Converter](https://epoch-converter.eth.sh/) | Convert Unix timestamps and dates, calculate relative times, and find Ethereum blocks by time. |
-| [Determine Address](https://eth.sh/determine-address) | Calculate contract addresses for CREATE and CREATE2 deployments. |
-| [SIWE Validator](https://siwe.eth.sh/) | Validate, fix, sign, and share EIP-4361 Sign-In With Ethereum messages. |
-| [Foundry](https://foundry.eth.sh/forge-stack-tracer-ui) | Explore Foundry stack traces in a collapsible tree. |
-| [Character Counter](https://character-counter.eth.sh/) | Count characters in a string or selected text. |
-| [Constants](https://constants.eth.sh/) | Copy common Ethereum constants, including the zero address and maximum integer values. |
+**Hardened.**
 
-## Payments, names, and token migration
+- No third-party scripts. Google Analytics is gone, and the Monaco editor is
+  served from this origin instead of a CDN.
+- A nonce-based Content-Security-Policy on every page (`proxy.ts`): scripts run
+  only if this server issued them. Plus the usual headers, `frame-ancestors
+  'none'`, and `noindex` so a mirror is never mistaken for the original.
+- The server only answers `GET` and `HEAD`.
+- The three remaining API routes are same-origin only and rate limited per
+  client, so nobody else can spend the Etherscan quota.
+- Pages do no server-side work on behalf of a URL (upstream fetches ABIs and
+  transactions on the server to build page titles).
+- No image optimizer endpoint.
+- Next.js and a few server-side dependencies are pinned to patched releases
+  ahead of upstream (`packages.pin` / `packages.overrides` in `keep.json`).
+- The container is distroless, non-root, read-only, has no capabilities, and
+  receives exactly one secret (`ETHERSCAN_API_KEY`). Dependencies are installed
+  with `--ignore-scripts`.
 
-| Tool | What it does |
-| --- | --- |
-| [Migrate Tokens](https://migrate.eth.sh/) | Transfer tokens to another address, batching transfers through ERC-5792 when supported. |
-| [USDC Pay](https://usdc-pay.eth.sh/) | Create shareable USDC payment links on Base, with ENS, Basename, and Farcaster username resolution. |
-| [Gwei Names](https://gwei.eth.sh/) | Register a .gwei name and migrate ENS website, avatar, and primary identity records. |
-| [Robin Bridge](https://eth.sh/robin-bridge) | Set up LayerZero OFT routes, bridge Base tokens to Robinhood Chain, and add ETH liquidity. |
+**What the server still does.** Three routes call out, with fixed hosts and
+validated `chainId` / `address` input:
 
-## Ecosystem directories
+- `/api/source-code`: verified source and ABI from Etherscan and Sourcify.
+- `/api/labels/<address>`: address labels (eth-labels, Sourcify, Etherscan, and
+  one RPC read to resolve a proxy).
+- `/api/clearsigning/descriptor`: ERC-7730 descriptors from the
+  `ethereum/clear-signing-erc7730-registry` repository on GitHub.
 
-| Directory | What you can find |
-| --- | --- |
-| [7702Beat](https://7702beat.eth.sh/) | EIP-7702 adoption across chains, wallets, and dapps. |
-| [Faucets](https://faucet.eth.sh/) | Testnet faucet sources and claim cooldown tracking. |
-| [Web3 AI Skills](https://skills.eth.sh/) | Skills, MCP servers, CLIs, wallets, and other tools for onchain agents. |
-| [Ethereum Orgs](https://eth.sh/orgs) | Foundations, labs, guilds, collectives, and adoption groups. |
-| [Privacy Protocols](https://privacy.eth.sh/) | Privacy protocols compared by supported chains, assets, fees, and privacy model. |
-| [R.I.P.](https://rip.eth.sh/) | Web3 project shutdowns, timelines, and original announcements. |
+**What the browser still contacts.** RPC endpoints for the selected chain,
+WalletConnect / Reown (relay, plus a telemetry ping from their SDK on load),
+Sourcify and 4byte signature lookups, ENS avatar hosts, and whatever wallet you
+connect. Everything else is same-origin.
 
-## Run locally
+## Deploy
 
-Built with **Next.js 16, React 19, TypeScript, Chakra UI, viem, and wagmi**.
+Requirements: Docker with Compose, git, Node >= 20 with corepack, and a reverse
+proxy that terminates TLS.
 
-The redesigned application is currently developed on `v2`. The previous site is preserved on [`swiss-knife-legacy`](https://github.com/swiss-knife-xyz/swiss-knife/tree/swiss-knife-legacy).
-
-Use [nvm](https://github.com/nvm-sh/nvm) to select the Node version in [`.nvmrc`](.nvmrc), and pnpm 9.12.0 as declared in [`package.json`](package.json).
-
-```bash
-git clone --branch v2 https://github.com/swiss-knife-xyz/swiss-knife.git
-cd swiss-knife
-nvm install
-nvm use
-corepack enable
-pnpm install
-cp .example.env.local .env.local
-pnpm dev
+```sh
+cp selfhost/env.example .env      # then edit; .env is git-ignored
+selfhost/update.sh --rebuild      # build, start, smoke-test
 ```
 
-Open [localhost:3000](http://localhost:3000). Keep `NEXT_PUBLIC_DEVELOPMENT="true"` in `.env.local` so navigation uses local paths instead of production subdomains:
+The container listens on `127.0.0.1:3947` only. Point your reverse proxy at it;
+`selfhost/Caddyfile.example` is a complete Caddy site block. The proxy must set
+`X-Forwarded-For` itself (Caddy does), and the port must not be reachable from
+outside: the rate limiter trusts that header.
 
-- `calldata.eth.sh/decoder` → `localhost:3000/calldata/decoder`
-- `explorer.eth.sh/` → `localhost:3000/explorer`
-- `tx.eth.sh/` → `localhost:3000/tx`
+`NEXT_PUBLIC_*` values are compiled into the browser bundle and are public. Do
+not put an RPC URL with a key in them. Rerun `selfhost/update.sh --rebuild`
+after changing `.env`.
 
-[`.example.env.local`](.example.env.local) lists environment variables for RPC providers, WalletConnect, explorer APIs, and other integrations. Configure the services needed for the tools you are working on; features that depend on missing credentials may be unavailable. Keep secrets in `.env.local`; `NEXT_PUBLIC_*` variables are exposed to the browser.
+## Stay up to date
 
-To build and serve the production bundle locally:
-
-```bash
-pnpm build
-pnpm start
+```sh
+selfhost/update.sh
 ```
 
-## Contributing
+This fetches upstream, shows what changed in the files this build keeps, merges,
+re-prunes and re-resolves the lockfile. It then builds the image (the fast unit
+tests and the typecheck run inside the build), starts the new image on a spare
+port and smoke-tests it, commits the merge, and only then replaces the running
+container. It never pushes. If nothing changed upstream it only rebuilds and
+redeploys.
 
-Bug reports, new tools, directory entries, and improvements to existing tools are welcome. [Open an issue](https://github.com/swiss-knife-xyz/swiss-knife/issues) to discuss a change or submit a pull request against `v2` while it remains the development branch.
+The fork is built so that merges stay cheap:
 
-- Read [`AGENTS.md`](AGENTS.md) for repository conventions, including page metadata and Open Graph images.
-- Tool routes live in [`app/`](app/); homepage listings live in [`data/toolCatalog.ts`](data/toolCatalog.ts) and [`data/subdomainToInfo.ts`](data/subdomainToInfo.ts). Subdomain definitions live in [`subdomains.js`](subdomains.js).
-- To add an external explorer, update [`data/addressExplorers.ts`](data/addressExplorers.ts) or [`data/txExplorers.ts`](data/txExplorers.ts).
-- Before changing network support or RPC access, read [`_docs/networks.md`](_docs/networks.md). Shared network definitions live in [`data/networks.ts`](data/networks.ts).
-- Run the tests relevant to your change and `pnpm exec tsc --noEmit`. Vitest configurations live in [`vitest/`](vitest/), and tool-specific test commands are listed in [`package.json`](package.json); shared network changes also require `pnpm test:networks`.
+- **Removed files** stay removed automatically, whatever upstream does to them.
+- **Derived files** (`package.json`, `pnpm-lock.yaml`) are regenerated from
+  upstream's copy on every update.
+- **Owned files** (listed under `owned` in `keep.json`) always keep this fork's
+  version; the script tells you when upstream touched one.
+- **Patched files** are ordinary upstream files with a small local change.
+  These are the only ones that can conflict. See them with
+  `git diff upstream/master --stat --diff-filter=M`.
 
-## License
+When a merge does conflict, resolve it, `git add`, and run
+`selfhost/update.sh --continue`.
 
-[MIT](LICENSE.md)
+Run `selfhost/update.sh --rebuild` now and then even without upstream changes:
+it pulls patched base images. `pnpm audit --prod` output is printed on every
+update; what remains is almost entirely inside wallet SDKs that upstream
+depends on. To force a fixed version, add it to `packages.pin` (direct
+dependency) or `packages.overrides` (transitive) in `selfhost/keep.json` and
+run the update again.
+
+## Layout
+
+```
+selfhost/keep.json        entry points, kept assets, owned files, dependency pins
+selfhost/prune.mjs        deletes what the entry points do not import
+selfhost/update.sh        merge upstream, verify, deploy
+selfhost/Dockerfile       verify / build / distroless runtime stages
+selfhost/compose.yaml     the hardened container
+proxy.ts                  CSP, method allowlist, same-origin API, rate limits
+next.config.js            static security headers, standalone output
+instrumentation-client.ts points Monaco at the self-hosted copy
+```
+
+## Local development
+
+```sh
+corepack pnpm install --ignore-scripts
+NEXT_PUBLIC_DEVELOPMENT=true corepack pnpm dev    # http://localhost:3000
+corepack pnpm typecheck
+corepack pnpm test:unit    # logic tests, seconds; these gate every image build
+corepack pnpm test:ui      # upstream's jsdom specs for the kept tools, ~10 min
+```
+
+`test:ui` is upstream's suite and is not fully green upstream either (a group
+of decoder network-panel specs fails on an untouched checkout), so it informs
+but does not gate. Tests that assert behavior this fork removed are listed in
+`selfhost/vitest.config.ts`.

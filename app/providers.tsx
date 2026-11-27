@@ -29,7 +29,6 @@ import {
   safeWallet,
   coinbaseWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { frameConnector } from "@/utils/frameConnector";
 import {
   impersonatorWallet,
   useImpersonatorModal,
@@ -86,7 +85,7 @@ const walletTransports = Object.fromEntries(
   walletChains.map((chain) => [chain.id, getLiveRpcTransport(chain.id)])
 );
 export const config = createConfig({
-  connectors: [frameConnector(), ...connectors],
+  connectors,
   chains: walletChains,
   transports: walletTransports,
 });

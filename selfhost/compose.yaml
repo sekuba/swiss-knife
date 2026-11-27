@@ -1,0 +1,47 @@
+# Run through selfhost/update.sh, which passes the env file:
+#   docker compose --env-file <env file> -f selfhost/compose.yaml up -d --build
+name: eth-sh
+services:
+  web:
+    image: eth-sh-selfhost
+    build:
+      context: ..
+      dockerfile: selfhost/Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?set NEXT_PUBLIC_SITE_URL in the env file}
+        NEXT_PUBLIC_MAINNET_RPC_URL: ${NEXT_PUBLIC_MAINNET_RPC_URL:-}
+        NEXT_PUBLIC_BASE_RPC_URL: ${NEXT_PUBLIC_BASE_RPC_URL:-}
+        NEXT_PUBLIC_WC_PROJECT_ID: ${NEXT_PUBLIC_WC_PROJECT_ID:-}
+        NEXT_PUBLIC_SOURCE_URL: ${NEXT_PUBLIC_SOURCE_URL:-}
+    # The only secret the server holds. Nothing else from the env file reaches
+    # the container.
+    environment:
+      ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY:-}
+    # Loopback only: the reverse proxy (TLS, X-Forwarded-For) is the one way in.
+    ports:
+      - "127.0.0.1:${ETHSH_PORT:-3947}:3000"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      # Next.js data cache (clear-signing registry snapshot).
+      - /app/.next/cache:size=128m,uid=65532,gid=65532,mode=0700
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 1g
+    pids_limit: 256
+    cpus: 2
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - /nodejs/bin/node
+        - -e
+        - "fetch('http://127.0.0.1:3000/robots.txt').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }

@@ -378,27 +378,6 @@ const AbiSourceCodeContent = ({
           mt={0}
         />
 
-        <Button
-          as={Link}
-          href={`${getPath(subdomains.SOLIDITY.base)}compiler?${new URLSearchParams({ address, chainId: String(chainId) })}`}
-          isExternal
-          variant="ghost"
-          size="sm"
-          h="auto"
-          py={2}
-          px={3}
-          color="text.primary"
-          _hover={{ bg: "whiteAlpha.100", textDecoration: "none" }}
-        >
-          <HStack spacing={2} align="center">
-            <VStack spacing={0.5} align="center">
-              <Text fontSize="sm" fontWeight="medium">Open in Compiler</Text>
-              <Text fontSize="xs" fontWeight="normal" color="text.secondary">to edit or deploy</Text>
-            </VStack>
-            <ExternalLink size={14} />
-          </HStack>
-        </Button>
-
         <HStack
           spacing={0}
           ml="auto"

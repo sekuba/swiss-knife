@@ -1,98 +1,16 @@
-import { fetchFunctionInterface } from "@/lib/decoder";
-import { getMetadata, startHexWith0x } from "@/utils";
-import type { Metadata } from "next";
-// Putting the page into separate component as it uses "use client" which doesn't work with `generateMetadata`
+// Owned by the self-hosted fork (selfhost/README.md). Upstream looks up the
+// transaction and its function name on the server to build a page title; this
+// build does no server-side work on behalf of a URL, so the title is static.
+import { getMetadata } from "@/utils";
 import { CalldataDecoderPage as CalldataDecoderP } from "./CalldataDecoderPage";
-import { metadata } from "../layout";
-import { Chain, Hex } from "viem";
-import { c, chainIdToChain } from "@/data/common";
-import { getPublicClient } from "@/lib/publicClient";
+import { metadata as layoutMetadata } from "../layout";
 
-interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export async function generateMetadata({
-  searchParams,
-}: PageProps): Promise<Metadata> {
-  const params = await searchParams;
-  let title = "Calldata Decoder | ETH.sh";
-
-  let calldata = params.calldata as string | undefined;
-  let tx = params.tx as string | undefined;
-
-  // add function name to the title if possible
-  if (tx) {
-    let chainId = params.chainId as string | undefined;
-    let chain: Chain;
-
-    try {
-      let txHash: string;
-      if (/^0x([A-Fa-f0-9]{64})$/.test(tx)) {
-        txHash = tx;
-
-        if (!chainId) throw new Error("Chain ID not provided");
-        chain = chainIdToChain[parseInt(chainId)];
-      } else {
-        txHash = tx.split("/").pop()!;
-
-        const chainKey = Object.keys(c).filter((chainKey) => {
-          const chain = c[chainKey as keyof typeof c] as Chain;
-
-          // using "null" instead of "" because tx.split("/") contains ""
-          let explorerDomainDefault = "null";
-          let explorerDomainEtherscan = "null";
-          if (chain.blockExplorers) {
-            explorerDomainDefault = chain.blockExplorers.default.url
-              .split("//")
-              .pop()!;
-
-            if (chain.blockExplorers.etherscan) {
-              explorerDomainEtherscan = chain.blockExplorers.etherscan.url
-                .split("//")
-                .pop()!;
-            }
-          }
-
-          return (
-            tx!
-              .split("/")
-              .filter(
-                (urlPart) =>
-                  urlPart.toLowerCase() ===
-                    explorerDomainDefault.toLowerCase() ||
-                  urlPart.toLowerCase() ===
-                    explorerDomainEtherscan.toLowerCase()
-              ).length > 0
-          );
-        })[0];
-        chain = c[chainKey as keyof typeof c];
-      }
-
-      const publicClient = getPublicClient(chain.id);
-      const transaction = await publicClient.getTransaction({
-        hash: txHash as Hex,
-      });
-      calldata = transaction.input;
-    } catch {}
-  }
-  if (calldata) {
-    calldata = startHexWith0x(calldata);
-    const selector = calldata.slice(0, 10);
-    const functionInterface = await fetchFunctionInterface({ selector });
-    if (functionInterface) {
-      const functionName = functionInterface.split("(")[0];
-      title = `${functionName}() - Calldata Decoder | ETH.sh`;
-    }
-  }
-
-  return getMetadata({
-    title,
-    canonical: "https://calldata.eth.sh/decoder",
-    description: metadata.description as string,
-    images: "https://eth.sh/api/og/calldata-decoder",
-  });
-}
+export const metadata = getMetadata({
+  title: "Calldata Decoder | ETH.sh",
+  canonical: "https://calldata.eth.sh/decoder",
+  description: layoutMetadata.description as string,
+  images: "https://eth.sh/api/og/calldata-decoder",
+});
 
 const CalldataDecoderPage = () => {
   return <CalldataDecoderP />;

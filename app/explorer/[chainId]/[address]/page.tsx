@@ -1,56 +1,10 @@
-import type { Metadata } from "next";
-import { fetchContractAbi, getMetadata } from "@/utils";
+// Owned by the self-hosted fork (selfhost/README.md). Upstream fetches the
+// contract's ABI on the server to put its name in the page title; this build
+// does no server-side work on behalf of a URL. Metadata comes from layout.tsx
+// (static text, plus names from the bundled registry of well-known contracts).
+import { notFound } from "next/navigation";
 import { Layout } from "@/components/Layout";
-// Putting the page into separate component as it uses "use client" which doesn't work with `generateMetadata`
 import { ContractPage as ContractP } from "./ContractPage";
-import { generateMetadata as layoutGenerateMetadata } from "./layout";
-import { getKnownContractSeo } from "@/lib/contractSeo";
-
-interface PageProps {
-  params: Promise<{ address: string; chainId: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
-  const { address, chainId } = await params;
-  // Curated names are more useful than proxy/implementation names and need no
-  // external explorer request to produce metadata for crawlers.
-  if (getKnownContractSeo(chainId, address)) {
-    return layoutGenerateMetadata({
-      params: Promise.resolve({ address, chainId }),
-    });
-  }
-  let title = `Contract ${address} | ETH.sh`;
-
-  // add contract name to the title if possible
-  let contractName = undefined as string | undefined;
-  try {
-    const fetchedAbi = await fetchContractAbi({
-      address,
-      chainId: parseInt(chainId),
-    });
-    contractName = fetchedAbi?.name;
-  } catch {}
-
-  if (contractName) {
-    title = `${contractName} - ${address} | ETH.sh`;
-  }
-
-  const layoutMetadata = await layoutGenerateMetadata({
-    params: Promise.resolve({ address, chainId }),
-  });
-
-  return {
-    ...getMetadata({
-      title,
-      canonical: `https://explorer.eth.sh/${chainId}/${address}`,
-      description: layoutMetadata.description as string,
-      images: "https://eth.sh/api/og/contract",
-    }),
-  };
-}
 
 const ContractPage = async ({
   params,
@@ -61,6 +15,8 @@ const ContractPage = async ({
   }>;
 }) => {
   const { address, chainId } = await params;
+  if (!/^[1-9]\d{0,15}$/.test(chainId) || !/^0x[0-9a-fA-F]{40}$/.test(address))
+    notFound();
   return (
     <Layout minW={0} allowSticky>
       <ContractP
