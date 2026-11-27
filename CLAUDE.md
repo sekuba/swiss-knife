@@ -10,6 +10,11 @@ Read [README.md](README.md) first; it explains the fork's structure.
   (via `selfhost/keep.json`), a new fork-owned file, a few-line patch.
 - Do not add tools, pages or API routes back without being asked. The kept
   surface is `/tx`, `/explorer`, `/calldata/decoder` and three API routes.
+- Removing a package that is installed but never loaded: add
+  `"<parent>><package>": "-"` to `packages.overrides`. If a bundled file still
+  references it, the build fails loudly; alias it to
+  `selfhost/removed-wallet-sdk.js` in `next.config.js` or put it back. Always
+  re-test wallet connection in a browser after touching the WalletConnect tree.
 - Never edit `package.json` or `pnpm-lock.yaml` by hand. Change
   `selfhost/keep.json` (`packages.*`, `scripts`), then run
   `node selfhost/prune.mjs` and
@@ -26,8 +31,7 @@ Read [README.md](README.md) first; it explains the fork's structure.
 
 ```sh
 node selfhost/prune.mjs --check
-corepack pnpm typecheck && corepack pnpm test:unit
-corepack pnpm test:ui -- <spec file>   # slow; run the specs near what you changed
+corepack pnpm typecheck && corepack pnpm test
 ```
 
 Upstream sync and deployment go through `selfhost/update.sh`; do not push or

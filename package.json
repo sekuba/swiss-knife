@@ -7,9 +7,7 @@
     "build": "node selfhost/copy-monaco.mjs && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test:unit": "tsx --test",
-    "test:ui": "vitest run --config selfhost/vitest.config.ts",
-    "test": "pnpm test:unit && pnpm test:ui",
+    "test": "tsx --test",
     "prune": "node selfhost/prune.mjs",
     "prune:check": "node selfhost/prune.mjs --check"
   },
@@ -58,17 +56,12 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@testing-library/react": "16.3.0",
     "@types/lodash": "^4.17.13",
     "@types/node": "20.2.5",
     "@types/react": "19.2.9",
     "@types/react-dom": "19.2.3",
-    "fake-indexeddb": "^6.2.8",
-    "highlight.js": "^11.10.0",
-    "jsdom": "26.1.0",
     "tsx": "^4.19.4",
-    "typescript": "5.8.3",
-    "vitest": "3.2.4"
+    "typescript": "5.8.3"
   },
   "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca",
   "pnpm": {
@@ -86,7 +79,23 @@
       "@wagmi/connectors>@base-org/account": "-",
       "@wagmi/connectors>@gemini-wallet/core": "-",
       "@wagmi/connectors>@safe-global/safe-apps-sdk": "-",
-      "@wagmi/connectors>@safe-global/safe-apps-provider": "-"
+      "@wagmi/connectors>@safe-global/safe-apps-provider": "-",
+      "unstorage>anymatch": "-",
+      "unstorage>chokidar": "-",
+      "unstorage>h3": "-",
+      "unstorage>listhen": "-",
+      "unstorage>lru-cache": "-",
+      "unstorage>mri": "-",
+      "unstorage>node-fetch-native": "-",
+      "unstorage>ofetch": "-",
+      "unstorage>ufo": "-",
+      "unstorage>@upstash/redis": "-",
+      "next>sharp": "-",
+      "qrcode>yargs": "-",
+      "@emotion/react>@emotion/babel-plugin": "-",
+      "@emotion/styled>@emotion/babel-plugin": "-",
+      "styled-jsx>babel-plugin-macros": "-",
+      "dedent>babel-plugin-macros": "-"
     }
   }
 }

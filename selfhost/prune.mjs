@@ -125,10 +125,12 @@ const prod = closure(entries);
 // 2. Upstream tests are kept only when the code they exercise survived: every
 //    local import must resolve, and anything a test adds on top of the
 //    production closure must itself be test-only material.
+// keep.json "keepTests": which kinds of upstream test files are kept at all.
+const keepTestsRe = new RegExp(cfg.keepTests ?? ".");
 const keptTests = new Map();
 const droppedTests = [];
 for (const test of allFiles.filter((f) => isTest(f) && isCode(f))) {
-  if (matches(test, cfg.dropTests ?? [])) {
+  if (matches(test, cfg.dropTests ?? []) || !keepTestsRe.test(test)) {
     droppedTests.push(test);
     continue;
   }

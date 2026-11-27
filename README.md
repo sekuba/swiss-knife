@@ -26,11 +26,18 @@ contributors (MIT, see [LICENSE.md](LICENSE.md)).
 
 **Removed.** Every other tool, page and API route (60 of 63 routes), the
 homepage, analytics, sitemap and Open Graph image generation, and every
-dependency the three tools do not import. The MetaMask, Coinbase, Base, Gemini,
-Safe and Porto wallet SDKs are dropped from the install as well (wagmi hard-
-depends on them; `packages.overrides` removes them and `next.config.js` stubs
-the imports). Together that is well over half of upstream's lockfile. What is
-left is computed, not hand-picked: `selfhost/prune.mjs` follows imports from the
+dependency the three tools do not import. On top of that, `packages.overrides`
+in `keep.json` cuts packages that are installed but never loaded:
+
+- the MetaMask, Coinbase, Base, Gemini, Safe and Porto wallet SDKs (wagmi
+  hard-depends on them; `next.config.js` stubs the imports),
+- the dev server, CLI and remote drivers that WalletConnect's storage layer
+  (`unstorage`) drags in,
+- Next's image library, a QR library's CLI parser, and Emotion's Babel macro.
+
+Upstream's jsdom test suite and its tooling are gone too; the fast unit tests
+stay. The lockfile goes from about 1900 packages to about 440. What is left is
+computed, not hand-picked: `selfhost/prune.mjs` follows imports from the
 entry points listed in `selfhost/keep.json` and deletes the rest.
 
 **Hardened.**
@@ -122,7 +129,8 @@ When a merge does conflict, resolve it, `git add`, and run
 Run `selfhost/update.sh --rebuild` now and then even without upstream changes:
 it pulls patched base images. `pnpm audit --prod` output is printed on every
 update; what remains is almost entirely inside WalletConnect's dependency
-tree. To force a fixed version, add it to `packages.pin` (direct
+tree. Its modal kit (`@reown/appkit`) is kept on purpose: it provides the
+"Copy link" for a pairing URI, which is how a Safe connects. To force a fixed version, add it to `packages.pin` (direct
 dependency) or `packages.overrides` (transitive) in `selfhost/keep.json` and
 run the update again.
 
@@ -147,11 +155,9 @@ instrumentation-client.ts points Monaco at the self-hosted copy
 corepack pnpm install --ignore-scripts
 NEXT_PUBLIC_DEVELOPMENT=true corepack pnpm dev    # http://localhost:3000
 corepack pnpm typecheck
-corepack pnpm test:unit    # logic tests, seconds; these gate every image build
-corepack pnpm test:ui      # upstream's jsdom specs for the kept tools, ~10 min
+corepack pnpm test         # upstream's logic tests, seconds; they gate every image build
 ```
 
-`test:ui` is upstream's suite and is not fully green upstream either (a group
-of decoder network-panel specs fails on an untouched checkout), so it informs
-but does not gate. Tests that assert behavior this fork removed are listed in
-`selfhost/vitest.config.ts`.
+Upstream's jsdom component specs are not kept (`keepTests` in `keep.json`):
+they need a large toolchain, take about ten minutes, and are not fully green
+on an untouched upstream checkout.

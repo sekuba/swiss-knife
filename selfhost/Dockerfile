@@ -13,17 +13,11 @@ RUN --mount=type=cache,id=pnpm-store,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 
-# Optional: upstream's browser-style specs for the kept tools. About ten
-# minutes, and not fully green upstream, so they do not gate the build.
-#   docker build -f selfhost/Dockerfile --target test-ui .
-FROM deps AS test-ui
-RUN pnpm test:ui
-
 FROM deps AS build
 # Fast logic tests (decoder, metadata, clear signing) gate every build. They
 # run before the NEXT_PUBLIC_* settings below, as upstream writes them against
 # its default configuration.
-RUN pnpm test:unit
+RUN pnpm test
 # NEXT_PUBLIC_* values are compiled into the browser bundle. They are public by
 # definition: never pass a URL or key here that visitors must not see.
 ARG NEXT_PUBLIC_SITE_URL
