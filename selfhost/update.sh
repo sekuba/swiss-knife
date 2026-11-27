@@ -59,10 +59,10 @@ merge_upstream() {
   local base; base="$(git merge-base HEAD "$target")"
 
   say "Upstream changes to files this build keeps ($(git rev-list --count "$base..$target") commits)"
-  # shellcheck disable=SC2046
-  git diff --stat "$base" "$target" -- $(git ls-files) | tail -n 40 || true
-  local touched; touched="$(owned_files | sed 's/^/:(literal)/' | tr '\n' '\0' |
-    git diff --name-only "$base" "$target" --pathspec-from-file=- --pathspec-file-nul || true)"
+  git ls-files -z | GIT_LITERAL_PATHSPECS=1 xargs -0 git diff --stat "$base" "$target" -- | tail -n 40
+  local owned=() touched
+  mapfile -t owned < <(owned_files)
+  touched="$(GIT_LITERAL_PATHSPECS=1 git diff --name-only "$base" "$target" -- "${owned[@]}")"
 
   say "Merging $target"
   git merge --no-commit --no-ff "$target" >/dev/null 2>&1 || true
@@ -73,9 +73,9 @@ merge_upstream() {
     git cat-file -e "HEAD:$path" 2>/dev/null || git rm -q -- ":(literal)$path"
   done < <(git diff --name-only --diff-filter=U -z)
   # Fork-owned files keep the fork's version, even where git merged cleanly.
-  while IFS= read -r path; do
+  for path in "${owned[@]}"; do
     git checkout -q HEAD -- ":(literal)$path"
-  done < <(owned_files)
+  done
   # Derived files start again from upstream's copy; prune re-derives them below.
   git checkout -q "$target" -- "${DERIVED[@]}"
 
@@ -97,8 +97,8 @@ derive() {
   say "Pruning to the kept tools"
   node selfhost/prune.mjs
   say "Resolving the lockfile (no packages are installed on the host)"
-  COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts \
-    2>&1 | grep -Ev 'unmet peer|^[│├└ ]|^$|Issues with peer' || true
+  COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm install --lockfile-only --no-frozen-lockfile \
+    --ignore-scripts --reporter=silent
   node selfhost/prune.mjs --check
 }
 
