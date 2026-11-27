@@ -28,9 +28,12 @@ class StorageHubClient {
 
   constructor() {
     if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      // Self-hosted origins cannot use the eth.sh hub: keep the book in local storage.
       this.isDevelopment =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
+        host === "localhost" ||
+        host === "127.0.0.1" ||
+        !(host === "eth.sh" || host.endsWith(".eth.sh"));
     }
   }
 

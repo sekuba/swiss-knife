@@ -5,7 +5,7 @@ const description =
   "A researched directory of Ethereum Foundation, Protocol Guild, Ethlabs, EthSystems, EAG, EEZ, PBS Foundation, Lido Labs, Nomic Foundation, Wevm, Argot, DTG, EEA, Ethereum Institutional, Etherealize, ECF, EEI, and other Ethereum stewardship organizations.";
 const siteUrl =
   process.env.NEXT_PUBLIC_DEVELOPMENT === "true"
-    ? "http://localhost:3000"
+    ? process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
     : "https://eth.sh";
 const pageUrl = `${siteUrl}/orgs`;
 const imageUrl = `${siteUrl}/api/og/orgs`;

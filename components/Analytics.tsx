@@ -8,6 +8,9 @@ const GA_ID = "G-9BJG2FRNP5";
 export const Analytics = () => {
   const pathname = usePathname();
 
+  // Self-hosted / local builds must not report into the upstream GA property.
+  if (process.env.NEXT_PUBLIC_DEVELOPMENT === "true") return null;
+
   // The address-book storage iframe is infrastructure, not a user page view.
   if (pathname === "/_storage" || pathname?.startsWith("/_storage/")) {
     return null;

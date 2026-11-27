@@ -86,7 +86,7 @@ export const getMetadata = (_metadata: {
   const metadata: Metadata = {
     metadataBase: new URL(
       process.env.NEXT_PUBLIC_DEVELOPMENT === "true"
-        ? "http://localhost:3000"
+        ? process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
         : "https://eth.sh"
     ),
     title: _metadata.title,

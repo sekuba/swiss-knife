@@ -62,7 +62,10 @@ export class CustomChainStorage {
       host === "127.0.0.1" ||
       host.endsWith(".localhost")
         ? `${window.location.protocol}//localhost${window.location.port ? ":" + window.location.port : ""}`
-        : "https://eth.sh");
+        : host === "eth.sh" || host.endsWith(".eth.sh")
+          ? "https://eth.sh"
+          : // Self-hosted origins are their own storage hub.
+            window.location.origin);
     if (window.location.origin === this.origin) {
       window.addEventListener("storage", this.localChange);
       return (this.ready = Promise.resolve());
