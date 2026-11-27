@@ -20,6 +20,10 @@ FROM deps AS test-ui
 RUN pnpm test:ui
 
 FROM deps AS build
+# Fast logic tests (decoder, metadata, clear signing) gate every build. They
+# run before the NEXT_PUBLIC_* settings below, as upstream writes them against
+# its default configuration.
+RUN pnpm test:unit
 # NEXT_PUBLIC_* values are compiled into the browser bundle. They are public by
 # definition: never pass a URL or key here that visitors must not see.
 ARG NEXT_PUBLIC_SITE_URL
@@ -35,9 +39,8 @@ ENV NEXT_PUBLIC_DEVELOPMENT=true \
     NEXT_PUBLIC_BASE_RPC_URL=$NEXT_PUBLIC_BASE_RPC_URL \
     NEXT_PUBLIC_WC_PROJECT_ID=$NEXT_PUBLIC_WC_PROJECT_ID \
     NEXT_PUBLIC_SOURCE_URL=$NEXT_PUBLIC_SOURCE_URL
-# Fast logic tests (decoder, metadata, clear signing) gate every build;
-# `next build` then typechecks the whole tree.
-RUN pnpm test:unit && pnpm build
+# `next build` also typechecks the whole tree.
+RUN pnpm build
 # The standalone server expects its static files next to it.
 RUN cp -r .next/static .next/standalone/.next/static && cp -r public .next/standalone/public
 
